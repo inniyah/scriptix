@@ -123,7 +123,7 @@ class System : public GC::Collectable {
 	inline Value* GetValue (void) { return data_stack.back(); }
 
 	// Fetch item from frame stack for op atrgs; "eats" arg
-	inline int GetOpArg (void) { return GetFrame().func->nodes[GetFrame().op_ptr++]; }
+	inline intptr_t GetOpArg (void) { return GetFrame().func->nodes[GetFrame().op_ptr++]; }
 
 	// Manipulate data stack - INLINE for speed
 	inline int
