@@ -2,6 +2,14 @@ PROGRAM=scriptix
 LIBNAME=scriptix
 LIBRARY=lib$(LIBNAME)
 
+CC= gcc
+CXX= g++
+AR= ar
+RM= rm -f
+
+PKGCONFIG= pkg-config
+PACKAGES= 
+
 all: static dynamic program test
 
 static: $(LIBRARY).a
@@ -38,23 +46,36 @@ SHARED_OBJS = $(LIB_SRC:.cpp=.shared.o)
 STATIC_OBJS = $(LIB_SRC:.cpp=.static.o)
 PROGRAM_OBJS = $(PRG_SRC:.cpp=.o)
 
-PKG_CONFIG=
-PKG_CONFIG_CFLAGS=`pkg-config --cflags $(PKG_CONFIG) 2>/dev/null`
-PKG_CONFIG_LIBS=`pkg-config --libs $(PKG_CONFIG) 2>/dev/null`
+CFLAGS= -O2 -g -Wall -std=c++17 \
+	-Iinclude \
+	-fstack-protector-strong \
+	-Wall \
+	-Wformat \
+	-Werror=format-security \
+	-Wdate-time \
+	-D_FORTIFY_SOURCE=2
 
-CFLAGS=-O2 -g -Wall 
-INCLUDE=-Iinclude $(PKG_CONFIG_CFLAGS)
-STATIC_CFLAGS= -O2 -g -Wall $(CFLAGS) $(INCLUDE)
-SHARED_CFLAGS= $(STATIC_CFLAGS) -fPIC
+CFLAGS+= $(shell $(PKGCONFIG) --cflags $(PACKAGES))
 
-LDFLAGS= -Wl,-z,defs -Wl,--as-needed -Wl,--no-undefined
-LIBS=-lgc $(PKG_CONFIG_LIBS)
+STATIC_CFLAGS= $(CFLAGS)
+SHARED_CFLAGS= $(CFLAGS) -fPIC
+
+LDFLAGS= \
+	-Wl,-z,defs,-z,relro,-z,now \
+	-Wl,--as-needed \
+	-Wl,--no-undefined
+
+LIBS=-lgc
+
+LIBS+= $(shell $(PKGCONFIG) --libs $(PACKAGES) 2>/dev/null)
+
+ARFLAGS= cr
 
 $(PROGRAM): $(PROGRAM_OBJS) $(LIBRARY).a $(LIBRARY).so
 	g++ $(LDFLAGS) $(PROGRAM_OBJS) -o $@ -l$(LIBNAME) -L. $(LIBS)
 
 $(LIBRARY).so.$(MAJOR).$(MINOR): $(SHARED_OBJS)
-	g++ $(LDFLAGS) -shared \
+	$(CXX) $(LDFLAGS) -shared \
 		-Wl,-soname,$(LIBRARY).so.$(MAJOR) \
 		-o $(LIBRARY).so.$(MAJOR).$(MINOR) \
 		$+ -o $@ $(LIBS)
@@ -66,7 +87,7 @@ $(LIBRARY).so: $(LIBRARY).so.$(MAJOR).$(MINOR)
 	ln -s $@.$(MAJOR) $@
 
 $(LIBRARY).a: $(STATIC_OBJS)
-	ar cru $@ $+
+	$(AR) $(ARFLAGS) $@ $+
 
 %.shared.o: %.cpp
 	g++ -o $@ -c $+ $(SHARED_CFLAGS)

@@ -54,7 +54,7 @@
 	#define YY_INPUT(b,r,m) sxp_compiler_input((b),&(r),(m))
 
 	const char *sxp_compiler_inbuf = NULL;
-	static void sxp_compiler_input (char *buf, yy_size_t *result, int max);
+	static void sxp_compiler_input (char *buf, int *result, int max);
 
 	#define malloc(size) GC_MALLOC(size)
 	#define realloc(ptr,size) GC_REALLOC(ptr,size)
@@ -168,7 +168,7 @@ sx_lex_str_push (char c) {
 
 static
 void
-sxp_compiler_input (char *buf, yy_size_t *result, int max_size) {
+sxp_compiler_input (char *buf, int *result, int max_size) {
 	if (sxp_compiler_inbuf != NULL) {
 		int len = strlen (sxp_compiler_inbuf);
 		if (max_size > len) {
