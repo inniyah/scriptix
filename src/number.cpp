@@ -38,8 +38,8 @@ using namespace Scriptix;
 Value*
 Number::MethodToString (size_t argc, Value** argv)
 {
-	char buf[20];
-	snprintf (buf, 20, "%ld", Number::ToInt(argv[0]));
+	char buf[21];
+	snprintf (buf, sizeof(buf), "%ld", Number::ToInt(argv[0]));
 	return new String(buf);
 }
 
