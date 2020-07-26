@@ -61,18 +61,18 @@ STATIC_CFLAGS= $(CFLAGS)
 SHARED_CFLAGS= $(CFLAGS) -fPIC
 
 LDFLAGS= \
-	-Wl,-z,defs,-z,relro,-z,now \
 	-Wl,--as-needed \
-	-Wl,--no-undefined
+	-Wl,--no-undefined \
+	-Wl,--no-allow-shlib-undefined
 
-LIBS=-lgc
+LIBS= -lgc -lgccpp
 
 LIBS+= $(shell $(PKGCONFIG) --libs $(PACKAGES) 2>/dev/null)
 
 ARFLAGS= cr
 
 $(PROGRAM): $(PROGRAM_OBJS) $(LIBRARY).a $(LIBRARY).so
-	g++ $(LDFLAGS) $(PROGRAM_OBJS) -o $@ -l$(LIBNAME) -L. $(LIBS)
+	g++ $(LDFLAGS) $(PROGRAM_OBJS) -l$(LIBNAME) -L. $(LIBS) -o $@
 
 $(LIBRARY).so.$(MAJOR).$(MINOR): $(SHARED_OBJS)
 	$(CXX) $(LDFLAGS) -shared \
